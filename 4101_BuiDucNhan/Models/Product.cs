@@ -23,10 +23,8 @@ namespace _4101_BuiDucNhan.Models
         [DisplayName("Mã loại")]
         public int CategoryId { get; set; }
 
-        [Required]
         public string? ImageUrl { get; set; } // Đường dẫn đến hình ảnh đại diện
 
-        [Required]
         public List<string>? ImageUrls { get; set; } // Danh sách các hình ảnh khác
     }
 }

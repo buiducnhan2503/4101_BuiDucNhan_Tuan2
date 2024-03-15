@@ -1,6 +1,7 @@
 ﻿using _4101_BuiDucNhan.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.DotNet.Scaffolding.Shared.Messaging;
 
 namespace _4101_BuiDucNhan.Controllers
 {
@@ -30,15 +31,51 @@ namespace _4101_BuiDucNhan.Controllers
             return View();
         }
 
+        //[HttpPost]
+        //public IActionResult Add(Product product)
+        //{
+        //    if (ModelState.IsValid)
+        //    {
+        //        _productRepository.Add(product);
+        //        return RedirectToAction("Index");
+        //    }
+        //    return View(product);
+        //}
+
+        // Thêm ảnh
         [HttpPost]
-        public IActionResult Add(Product product)
+        public async Task<IActionResult> Add(Product product, IFormFile imageUrl, List<IFormFile> imageUrls)
         {
             if (ModelState.IsValid)
             {
+                if (imageUrl != null)
+                {
+                    // Lưu hình ảnh đại diện
+                    product.ImageUrl = await SaveImage(imageUrl);                 
+                }
+                if (imageUrls != null)
+                {
+                    product.ImageUrls = new List<string>();
+                    foreach (var file in imageUrls)
+                    {
+                        // Lưu các hình ảnh khác
+                        product.ImageUrls.Add(await SaveImage(file));
+                    }
+                }
                 _productRepository.Add(product);
                 return RedirectToAction("Index");
             }
             return View(product);
+        }
+
+        private async Task<string> SaveImage(IFormFile image)
+        {
+            var savePath = Path.Combine("wwwroot/images", image.FileName); // Thay đổi đường dẫn theo cấu hình của bạn
+            using (var fileStream = new FileStream(savePath, FileMode.Create))
+            {
+                await image.CopyToAsync(fileStream);
+            }
+            return "/images/" + image.FileName; // Trả về đường dẫn tương đối
         }
 
         // Sửa một sản phẩm
@@ -51,7 +88,7 @@ namespace _4101_BuiDucNhan.Controllers
             }
             return View(product);
         }
-     
+
         [HttpPost]
         public IActionResult Update(Product product)
         {
@@ -90,42 +127,6 @@ namespace _4101_BuiDucNhan.Controllers
         {
             _productRepository.Delete(id);
             return RedirectToAction("Index");
-        }
-
-        // Thêm ảnh
-        [HttpPost]
-        public async Task<IActionResult> Add(Product product, IFormFile imageUrl, List<IFormFile> imageUrls)
-        {
-            if (ModelState.IsValid)
-            {
-                if (imageUrl != null)
-                {
-                    // Lưu hình ảnh đại diện
-                    product.ImageUrl = await SaveImage(imageUrl);
-                }
-                if (imageUrls != null)
-                {
-                    product.ImageUrls = new List<string>();
-                    //foreach (var file in additionalImages)
-                    //{
-                    //    // Lưu các hình ảnh khác
-                    //    product.ImageUrls.Add(await SaveImage(file));
-                    //}
-                }
-                _productRepository.Add(product);
-                return RedirectToAction("Index");
-            }
-            return View(product);
-        }
-
-        private async Task<string> SaveImage(IFormFile image)
-        {
-            var savePath = Path.Combine("wwwroot/images", image.FileName); // Thay đổi đường dẫn theo cấu hình của bạn
-            using (var fileStream = new FileStream(savePath, FileMode.Create))
-            {
-                await image.CopyToAsync(fileStream);
-            }
-            return "/images/" + image.FileName; // Trả về đường dẫn tương đối
         }
     }
 }
